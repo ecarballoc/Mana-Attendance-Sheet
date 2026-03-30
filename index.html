@@ -101,7 +101,7 @@
   /* ── PRINT SHEET (screen preview) ── */
   .sheet-preview {
     background: white; color: #111; border-radius: 8px;
-    box-shadow: 0 8px 40px rgba(0,0,0,0.4); overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4); overflow: visible;
   }
   .sp-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 2px solid #111; }
 
@@ -111,7 +111,7 @@
     border-bottom: 0.5px solid #ccc;
   }
   /* Logo container — fixed size so it never clips */
-  .sp-logo-wrap { flex-shrink: 0; width: 260px; }
+  .sp-logo-wrap { flex-shrink: 0; width: 320px; }
   .sp-logo-wrap svg { width: 100%; height: auto; display: block; }
 
   .sp-header-right { text-align: right; }
@@ -154,9 +154,9 @@
   /* N° column — black text now */
   .sp-table .num { text-align: center; color: #111; font-size: 10px; width: 30px; }
   .sp-table .name { font-weight: 500; }
-  .col-fullname { width: auto; }
+  .col-fullname { width: 200px; }
   .col-post { width: 60px; }
-  .col-sig { width: 130px; }
+  .col-sig { width: 180px; }
   .col-radio { width: 46px; text-align: center; }
   .col-torch { width: 46px; text-align: center; }
   .col-notes { width: 100px; }
@@ -170,7 +170,8 @@
   /* ── PRINT STYLES ── */
   @media print {
     /* Force landscape A4 */
-    @page { size: A4 landscape; margin: 10mm; }
+    @page { size: A4 landscape; margin: 8mm; }
+    @page { -webkit-size: A4 landscape; }
 
     body { background: white !important; }
     header, .controls-bar, .info-bar, .error-banner { display: none !important; }
@@ -192,7 +193,7 @@
     .sp-table td { padding: 5px 6px; height: 24px; }
     .sp-table th { padding: 5px 6px; font-size: 8px; }
     .sp-header { padding: 6px 10px 5px; }
-    .sp-logo-wrap { width: 220px; }
+    .sp-logo-wrap { width: 300px; }
   }
 </style>
 </head>
@@ -260,7 +261,7 @@
 <div class="preview-area" id="previewArea"></div>
 
 <script>
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8ZZDcAG1FEHHty05G4m5G3ywaXJqRhcqbri1CE8PmpzinuycjesWlX1vB-nZQuA/pub?gid=1762713676&single=true&output=csv';
+const SHEET_CSV_URL = 'YOUR_GOOGLE_SHEET_CSV_URL_HERE';
 
 const AM_SHIFTS = ['D'];
 const PM_SHIFTS = ['N','HD'];
