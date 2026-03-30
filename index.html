@@ -98,53 +98,68 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ── PRINT SHEET ── */
+  /* ── PRINT SHEET (screen preview) ── */
   .sheet-preview {
     background: white; color: #111; border-radius: 8px;
     box-shadow: 0 8px 40px rgba(0,0,0,0.4); overflow: hidden;
   }
-  .sp-header { padding: 1.25rem 1.5rem 1rem; border-bottom: 2px solid #111; }
+  .sp-header { padding: 1rem 1.25rem 0.75rem; border-bottom: 2px solid #111; }
+
   .sp-header-top {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 1rem; margin-bottom: 10px; padding-bottom: 10px;
-    border-bottom: 0.5px solid #e0d8cc;
+    gap: 1rem; margin-bottom: 8px; padding-bottom: 8px;
+    border-bottom: 0.5px solid #ccc;
   }
-  .sp-logo { height: 38px; width: auto; }
+  /* Logo container — fixed size so it never clips */
+  .sp-logo-wrap { flex-shrink: 0; width: 260px; }
+  .sp-logo-wrap svg { width: 100%; height: auto; display: block; }
+
   .sp-header-right { text-align: right; }
   .sp-company { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 2px; }
   .sp-dept { font-size: 10px; color: #444; }
+
   .sp-title-row {
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 8px; padding-top: 8px;
+    flex-wrap: wrap; gap: 8px; padding-top: 6px;
   }
-  .sp-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #0d1b2a; }
+  .sp-title { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: #111; }
   .sp-badge-am {
     background: white; color: #111; border: 1.5px solid #111;
-    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; padding: 4px 12px; border-radius: 4px;
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; padding: 3px 10px; border-radius: 3px;
   }
   .sp-badge-pm {
     background: #111; color: white; border: 1.5px solid #111;
-    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; padding: 4px 12px; border-radius: 4px;
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: 1px; padding: 3px 10px; border-radius: 3px;
   }
-  .sp-meta { display: flex; gap: 2rem; margin-top: 8px; font-size: 11px; color: #555; }
+  .sp-meta { display: flex; gap: 2rem; margin-top: 6px; font-size: 10px; color: #555; }
   .sp-meta strong { color: #111; }
 
-  .sp-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
+  /* Table — full borders on all cells */
+  .sp-table { width: 100%; border-collapse: collapse; font-size: 10.5px; font-family: 'DM Mono', monospace; table-layout: fixed; }
   .sp-table th {
-    background: white; color: #111; padding: 7px 8px; text-align: left;
-    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
-    font-weight: 700; white-space: nowrap; border-bottom: 2px solid #111;
+    background: white; color: #111; padding: 6px 7px; text-align: left;
+    font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase;
+    font-weight: 700; white-space: nowrap;
+    border: 1px solid #111;
   }
-  .sp-table td { padding: 8px 8px; border-bottom: 0.5px solid #e8e2d6; color: #111; vertical-align: middle; }
-  .sp-table tr:nth-child(even) td { background: #fafaf8; }
-  .sp-table tr:last-child td { border-bottom: none; }
+  .sp-table td {
+    padding: 7px 7px; color: #111; vertical-align: middle;
+    border: 1px solid #aaa;
+    height: 28px;
+  }
+  .sp-table tr:nth-child(even) td { background: #f9f9f9; }
   .sp-table .tc { text-align: center; }
-  .sp-table .num { text-align: center; color: #999; font-size: 10px; width: 28px; }
+  /* N° column — black text now */
+  .sp-table .num { text-align: center; color: #111; font-size: 10px; width: 30px; }
   .sp-table .name { font-weight: 500; }
-  .sp-sig { min-width: 110px; }
-  .sp-check { width: 40px; }
+  .col-fullname { width: auto; }
+  .col-post { width: 60px; }
+  .col-sig { width: 130px; }
+  .col-radio { width: 46px; text-align: center; }
+  .col-torch { width: 46px; text-align: center; }
+  .col-notes { width: 100px; }
 
   .error-banner {
     background: rgba(220,50,50,0.1); border: 1px solid rgba(220,50,50,0.3);
@@ -152,17 +167,32 @@
     font-size: 12px; margin: 1rem 2rem;
   }
 
+  /* ── PRINT STYLES ── */
   @media print {
+    /* Force landscape A4 */
+    @page { size: A4 landscape; margin: 10mm; }
+
     body { background: white !important; }
     header, .controls-bar, .info-bar, .error-banner { display: none !important; }
     .preview-area { padding: 0 !important; gap: 0 !important; }
+
     .sheet-preview {
-      box-shadow: none !important; border-radius: 0 !important;
-      page-break-after: always; break-after: page;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+      page-break-after: always;
+      break-after: page;
+      width: 100%;
     }
-    .sheet-preview:last-child { page-break-after: avoid; break-after: avoid; }
-    .sp-table { font-size: 10px; }
-    .sp-table td { padding: 7px 6px; }
+    .sheet-preview:last-child {
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    .sp-table { font-size: 9.5px; }
+    .sp-table td { padding: 5px 6px; height: 24px; }
+    .sp-table th { padding: 5px 6px; font-size: 8px; }
+    .sp-header { padding: 6px 10px 5px; }
+    .sp-logo-wrap { width: 220px; }
   }
 </style>
 </head>
@@ -170,6 +200,7 @@
 
 <header>
   <div class="header-brand">
+    <!-- SEG Logo — white version for dark header -->
     <svg class="header-seg-logo" viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg">
       <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" stroke-width="7"/>
       <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor"/>
@@ -229,7 +260,7 @@
 <div class="preview-area" id="previewArea"></div>
 
 <script>
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8ZZDcAG1FEHHty05G4m5G3ywaXJqRhcqbri1CE8PmpzinuycjesWlX1vB-nZQuA/pub?gid=1762713676&single=true&output=csv';
+const SHEET_CSV_URL = 'YOUR_GOOGLE_SHEET_CSV_URL_HERE';
 
 const AM_SHIFTS = ['D'];
 const PM_SHIFTS = ['N','HD'];
@@ -297,53 +328,52 @@ function buildRoster(rows){
   return data;
 }
 
-const LOGO_BLACK = `<svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg" style="height:36px;width:auto;">
-  <circle cx="100" cy="100" r="95" fill="none" stroke="#0d1b2a" stroke-width="7"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(60 100 100)"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(120 100 100)"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(180 100 100)"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(240 100 100)"/>
-  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(300 100 100)"/>
-  <circle cx="100" cy="100" r="10" fill="#0d1b2a"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(60 100 100)"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(120 100 100)"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(180 100 100)"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(240 100 100)"/>
-  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(300 100 100)"/>
-  <text x="230" y="115" font-family="Syne,sans-serif" font-size="72" font-weight="800" letter-spacing="-1" fill="#0d1b2a">SEG HOLDCO, LLC.</text>
-  <line x1="230" y1="145" x2="316" y2="145" stroke="#0d1b2a" stroke-width="2"/>
-  <text x="326" y="152" font-family="Syne,sans-serif" font-size="22" font-weight="600" letter-spacing="8" fill="#0d1b2a">FIJI BRANCH</text>
-  <line x1="566" y1="145" x2="810" y2="145" stroke="#0d1b2a" stroke-width="2"/>
+// Logo SVG — black version for printed sheet
+const LOGO_BLACK = `<svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block;">
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#111" stroke-width="7"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111" transform="rotate(60 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111" transform="rotate(120 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111" transform="rotate(180 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111" transform="rotate(240 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#111" transform="rotate(300 100 100)"/>
+  <circle cx="100" cy="100" r="10" fill="#111"/>
+  <circle cx="100" cy="11" r="4" fill="#111"/>
+  <circle cx="100" cy="11" r="4" fill="#111" transform="rotate(60 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#111" transform="rotate(120 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#111" transform="rotate(180 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#111" transform="rotate(240 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#111" transform="rotate(300 100 100)"/>
+  <text x="230" y="115" font-family="Syne,sans-serif" font-size="72" font-weight="800" letter-spacing="-1" fill="#111">SEG HOLDCO, LLC.</text>
+  <line x1="230" y1="145" x2="316" y2="145" stroke="#111" stroke-width="2"/>
+  <text x="326" y="152" font-family="Syne,sans-serif" font-size="22" font-weight="600" letter-spacing="8" fill="#111">FIJI BRANCH</text>
+  <line x1="566" y1="145" x2="810" y2="145" stroke="#111" stroke-width="2"/>
 </svg>`;
 
 function buildSheet(dateStr, shift, guards){
-  const isAM=shift==='AM';
-  const badge=isAM?'sp-badge-am':'sp-badge-pm';
-  const label=isAM?'&#9728; AM Shift — Day':'&#9790; PM Shift — Night';
-  const dateDisplay=formatDate(dateStr);
-  let rows='';
-  guards.forEach((name,i)=>{
-    const parts=name.trim().split(' ');
-    const last=parts.slice(-1)[0];
-    const first=parts.slice(0,-1).join(' ');
-    rows+=`<tr>
+  const isAM = shift === 'AM';
+  const badge = isAM ? 'sp-badge-am' : 'sp-badge-pm';
+  const label = isAM ? '&#9728; AM Shift — Day' : '&#9790; PM Shift — Night';
+  const dateDisplay = formatDate(dateStr);
+
+  let rows = '';
+  guards.forEach((name, i) => {
+    rows += `<tr>
       <td class="num">${i+1}</td>
-      <td class="name">${first}</td>
-      <td class="name">${last}</td>
-      <td></td>
-      <td class="sp-sig"></td>
-      <td class="sp-check tc"></td>
-      <td class="sp-check tc"></td>
-      <td class="sp-sig"></td>
-      <td style="min-width:80px;"></td>
+      <td class="name col-fullname">${name}</td>
+      <td class="col-post"></td>
+      <td class="col-sig"></td>
+      <td class="col-radio tc"></td>
+      <td class="col-torch tc"></td>
+      <td class="col-sig"></td>
+      <td class="col-notes"></td>
     </tr>`;
   });
+
   return `<div class="sheet-preview">
     <div class="sp-header">
       <div class="sp-header-top">
-        ${LOGO_BLACK}
+        <div class="sp-logo-wrap">${LOGO_BLACK}</div>
         <div class="sp-header-right">
           <div class="sp-company">Project / Seasons 51–52</div>
           <div class="sp-dept">Security Department — Security Guards @ Mana Island</div>
@@ -360,15 +390,14 @@ function buildSheet(dateStr, shift, guards){
     </div>
     <table class="sp-table">
       <thead><tr>
-        <th>N°</th>
-        <th style="min-width:130px;">First name</th>
-        <th style="min-width:130px;">Last name</th>
-        <th style="width:70px;">Post</th>
-        <th style="min-width:110px;">Signature</th>
-        <th style="width:44px;">Radio</th>
-        <th style="width:44px;">Torch</th>
-        <th style="min-width:110px;">Signature</th>
-        <th style="min-width:90px;">Notes</th>
+        <th class="num" style="width:30px;">N°</th>
+        <th class="col-fullname">Full Name</th>
+        <th class="col-post">Post</th>
+        <th class="col-sig">Signature</th>
+        <th class="col-radio tc">Radio</th>
+        <th class="col-torch tc">Torch</th>
+        <th class="col-sig">Signature</th>
+        <th class="col-notes">Notes</th>
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>
@@ -376,56 +405,56 @@ function buildSheet(dateStr, shift, guards){
 }
 
 function renderSheets(dateStr){
-  const preview=document.getElementById('previewArea');
-  const infoBar=document.getElementById('infoBar');
-  const shiftInfo=document.getElementById('shiftInfo');
+  const preview = document.getElementById('previewArea');
+  const infoBar = document.getElementById('infoBar');
+  const shiftInfo = document.getElementById('shiftInfo');
   if(!dateStr){preview.innerHTML='';infoBar.style.display='none';return;}
-  const data=rosterData[dateStr];
+  const data = rosterData[dateStr];
   if(!data){
     preview.innerHTML=`<div class="no-data"><div class="no-data-icon">📋</div><div>No roster data for <strong>${formatDate(dateStr)}</strong></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Check that the date falls within the roster period.</div></div>`;
-    infoBar.style.display='none';shiftInfo.innerHTML='';return;
+    infoBar.style.display='none'; shiftInfo.innerHTML=''; return;
   }
-  const amG=data.D||[], pmG=data.N||[];
-  infoBar.style.display='flex';
-  document.getElementById('infoDate').textContent=formatDate(dateStr);
-  document.getElementById('infoAM').textContent=amG.length;
-  document.getElementById('infoPM').textContent=pmG.length;
-  shiftInfo.innerHTML='';
-  if(amG.length)shiftInfo.innerHTML+=`<span class="shift-tag tag-am">AM · ${amG.length}</span>`;
-  if(pmG.length)shiftInfo.innerHTML+=`<span class="shift-tag tag-pm">PM · ${pmG.length}</span>`;
-  let html='';
-  if(amG.length)html+=buildSheet(dateStr,'AM',amG);
-  if(pmG.length)html+=buildSheet(dateStr,'PM',pmG);
-  if(!html)html=`<div class="no-data"><div class="no-data-icon">📋</div><div>No guards assigned for this date.</div></div>`;
-  preview.innerHTML=html;
+  const amG = data.D || [], pmG = data.N || [];
+  infoBar.style.display = 'flex';
+  document.getElementById('infoDate').textContent = formatDate(dateStr);
+  document.getElementById('infoAM').textContent = amG.length;
+  document.getElementById('infoPM').textContent = pmG.length;
+  shiftInfo.innerHTML = '';
+  if(amG.length) shiftInfo.innerHTML += `<span class="shift-tag tag-am">AM · ${amG.length}</span>`;
+  if(pmG.length) shiftInfo.innerHTML += `<span class="shift-tag tag-pm">PM · ${pmG.length}</span>`;
+  let html = '';
+  if(amG.length) html += buildSheet(dateStr, 'AM', amG);
+  if(pmG.length) html += buildSheet(dateStr, 'PM', pmG);
+  if(!html) html = `<div class="no-data"><div class="no-data-icon">📋</div><div>No guards assigned for this date.</div></div>`;
+  preview.innerHTML = html;
 }
 
 async function loadRoster(){
-  document.getElementById('statusText').textContent='Loading roster…';
-  document.getElementById('previewArea').innerHTML=`<div class="loading"><div class="spinner"></div><span>Fetching roster data…</span></div>`;
-  document.getElementById('infoBar').style.display='none';
+  document.getElementById('statusText').textContent = 'Loading roster…';
+  document.getElementById('previewArea').innerHTML = `<div class="loading"><div class="spinner"></div><span>Fetching roster data…</span></div>`;
+  document.getElementById('infoBar').style.display = 'none';
   try{
-    const res=await fetch(SHEET_CSV_URL);
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    rosterData=buildRoster(parseCSV(await res.text()));
-    document.getElementById('statusText').textContent=`Roster loaded · ${Object.keys(rosterData).length} days`;
-    document.getElementById('errorBanner').style.display='none';
-    if(minDate)document.getElementById('dateInput').min=minDate;
-    if(maxDate)document.getElementById('dateInput').max=maxDate;
-    const today=toDateStr(new Date());
-    const def=rosterData[today]?today:(minDate||today);
-    document.getElementById('dateInput').value=def;
+    const res = await fetch(SHEET_CSV_URL);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    rosterData = buildRoster(parseCSV(await res.text()));
+    document.getElementById('statusText').textContent = `Roster loaded · ${Object.keys(rosterData).length} days`;
+    document.getElementById('errorBanner').style.display = 'none';
+    if(minDate) document.getElementById('dateInput').min = minDate;
+    if(maxDate) document.getElementById('dateInput').max = maxDate;
+    const today = toDateStr(new Date());
+    const def = rosterData[today] ? today : (minDate || today);
+    document.getElementById('dateInput').value = def;
     renderSheets(def);
-  }catch(err){
-    document.getElementById('statusText').textContent='Error loading roster';
-    const eb=document.getElementById('errorBanner');
-    eb.innerHTML=`Could not load roster data. Verify the Google Sheet URL is published as CSV.<br><br><code>${err.message}</code>`;
-    eb.style.display='block';
-    document.getElementById('previewArea').innerHTML='';
+  } catch(err){
+    document.getElementById('statusText').textContent = 'Error loading roster';
+    const eb = document.getElementById('errorBanner');
+    eb.innerHTML = `Could not load roster data. Verify the Google Sheet URL is published as CSV.<br><br><code>${err.message}</code>`;
+    eb.style.display = 'block';
+    document.getElementById('previewArea').innerHTML = '';
   }
 }
 
-document.getElementById('dateInput').addEventListener('change',function(){renderSheets(this.value);});
+document.getElementById('dateInput').addEventListener('change', function(){ renderSheets(this.value); });
 loadRoster();
 </script>
 </body>
