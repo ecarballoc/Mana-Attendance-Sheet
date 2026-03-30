@@ -231,7 +231,7 @@
 <div class="preview-area" id="previewArea"></div>
 
 <script>
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR8ZZDcAG1FEHHty05G4m5G3ywaXJqRhcqbri1CE8PmpzinuycjesWlX1vB-nZQuA/pub?gid=1762713676&single=true&output=csv';
+const SHEET_CSV_URL = 'YOUR_GOOGLE_SHEET_CSV_URL_HERE';
 
 const AM_SHIFTS = ['D'];
 const PM_SHIFTS = ['N','HD'];
@@ -388,7 +388,9 @@ async function loadRoster(){
     document.getElementById('errorBanner').style.display = 'none';
     if(minDate) document.getElementById('dateInput').min = minDate;
     if(maxDate) document.getElementById('dateInput').max = maxDate;
-    const today = toDateStr(new Date());
+    // Use local date (not UTC) so Fiji timezone shows correct day
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const def = rosterData[today] ? today : (minDate || today);
     document.getElementById('dateInput').value = def;
     renderSheets(def);
