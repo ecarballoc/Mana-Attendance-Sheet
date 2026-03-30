@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mana Island — Attendance Sheet Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #1a2f45;
+    --navy-light: #243b55;
+    --teal: #00b4a0;
+    --gold: #f0a500;
+    --text-light: #c8d8e8;
+    --text-muted: #7a9ab8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Mono', monospace; background: var(--navy); color: var(--text-light); min-height: 100vh; }
+
+  header {
+    background: var(--navy-mid);
+    border-bottom: 1px solid rgba(0,180,160,0.25);
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .header-brand { display: flex; align-items: center; gap: 16px; }
+  .header-seg-logo { height: 46px; width: auto; filter: brightness(0) invert(1); opacity: 0.88; }
+  .header-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.15); }
+  .header-left { display: flex; flex-direction: column; gap: 3px; }
+  .header-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+  .header-sub { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,180,160,0.1); border: 1px solid rgba(0,180,160,0.3);
+    border-radius: 100px; padding: 6px 14px; font-size: 11px; color: var(--teal);
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .controls-bar {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    padding: 1.5rem 2rem; background: var(--navy-light);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .ctrl-group { display: flex; flex-direction: column; gap: 5px; }
+  .ctrl-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  input[type="date"] {
+    background: var(--navy-mid); border: 1px solid rgba(0,180,160,0.3);
+    border-radius: 6px; color: white; font-family: 'DM Mono', monospace;
+    font-size: 14px; padding: 9px 14px; cursor: pointer; transition: border-color 0.2s;
+  }
+  input[type="date"]:hover, input[type="date"]:focus { border-color: var(--teal); outline: none; }
+  .btn-print {
+    display: flex; align-items: center; gap: 8px; background: var(--teal);
+    color: var(--navy); border: none; border-radius: 6px;
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: 0.5px; padding: 10px 20px; cursor: pointer;
+    transition: background 0.2s, transform 0.1s; margin-left: auto;
+  }
+  .btn-print:hover { background: #00c9b3; }
+  .btn-print:active { transform: scale(0.98); }
+
+  .info-bar {
+    display: flex; gap: 2rem; padding: 1rem 2rem; font-size: 12px;
+    color: var(--text-muted); border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+  .info-bar span { display: flex; gap: 8px; align-items: center; }
+  .info-bar strong { color: white; }
+
+  .shift-tag {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
+  }
+  .tag-am { background: rgba(240,165,0,0.15); color: var(--gold); border: 1px solid rgba(240,165,0,0.3); }
+  .tag-pm { background: rgba(0,180,160,0.12); color: var(--teal); border: 1px solid rgba(0,180,160,0.25); }
+
+  .preview-area { padding: 2rem; display: flex; flex-direction: column; gap: 2rem; }
+
+  .no-data {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 4rem 2rem; text-align: center;
+    border: 1px dashed rgba(0,180,160,0.2); border-radius: 12px;
+    color: var(--text-muted); font-size: 13px;
+  }
+  .no-data-icon { font-size: 2rem; opacity: 0.4; }
+  .loading {
+    display: flex; flex-direction: column; align-items: center; gap: 16px;
+    padding: 4rem 2rem; color: var(--text-muted);
+    font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  }
+  .spinner {
+    width: 32px; height: 32px; border: 2px solid rgba(0,180,160,0.2);
+    border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── PRINT SHEET ── */
+  .sheet-preview {
+    background: white; color: #111; border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4); overflow: hidden;
+  }
+  .sp-header { padding: 1.25rem 1.5rem 1rem; border-bottom: 2px solid #111; }
+  .sp-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; margin-bottom: 10px; padding-bottom: 10px;
+    border-bottom: 0.5px solid #e0d8cc;
+  }
+  .sp-logo { height: 38px; width: auto; }
+  .sp-header-right { text-align: right; }
+  .sp-company { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 2px; }
+  .sp-dept { font-size: 10px; color: #444; }
+  .sp-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px; padding-top: 8px;
+  }
+  .sp-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #0d1b2a; }
+  .sp-badge-am {
+    background: white; color: #111; border: 1.5px solid #111;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; padding: 4px 12px; border-radius: 4px;
+  }
+  .sp-badge-pm {
+    background: #111; color: white; border: 1.5px solid #111;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; padding: 4px 12px; border-radius: 4px;
+  }
+  .sp-meta { display: flex; gap: 2rem; margin-top: 8px; font-size: 11px; color: #555; }
+  .sp-meta strong { color: #111; }
+
+  .sp-table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'DM Mono', monospace; }
+  .sp-table th {
+    background: white; color: #111; padding: 7px 8px; text-align: left;
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    font-weight: 700; white-space: nowrap; border-bottom: 2px solid #111;
+  }
+  .sp-table td { padding: 8px 8px; border-bottom: 0.5px solid #e8e2d6; color: #111; vertical-align: middle; }
+  .sp-table tr:nth-child(even) td { background: #fafaf8; }
+  .sp-table tr:last-child td { border-bottom: none; }
+  .sp-table .tc { text-align: center; }
+  .sp-table .num { text-align: center; color: #999; font-size: 10px; width: 28px; }
+  .sp-table .name { font-weight: 500; }
+  .sp-sig { min-width: 110px; }
+  .sp-check { width: 40px; }
+
+  .error-banner {
+    background: rgba(220,50,50,0.1); border: 1px solid rgba(220,50,50,0.3);
+    border-radius: 8px; padding: 1rem 1.5rem; color: #ff8080;
+    font-size: 12px; margin: 1rem 2rem;
+  }
+
+  @media print {
+    body { background: white !important; }
+    header, .controls-bar, .info-bar, .error-banner { display: none !important; }
+    .preview-area { padding: 0 !important; gap: 0 !important; }
+    .sheet-preview {
+      box-shadow: none !important; border-radius: 0 !important;
+      page-break-after: always; break-after: page;
+    }
+    .sheet-preview:last-child { page-break-after: avoid; break-after: avoid; }
+    .sp-table { font-size: 10px; }
+    .sp-table td { padding: 7px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <svg class="header-seg-logo" viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" stroke-width="7"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor" transform="rotate(60 100 100)"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor" transform="rotate(120 100 100)"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor" transform="rotate(180 100 100)"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor" transform="rotate(240 100 100)"/>
+      <ellipse cx="100" cy="50" rx="16" ry="36" fill="currentColor" transform="rotate(300 100 100)"/>
+      <circle cx="100" cy="100" r="10" fill="currentColor"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor" transform="rotate(60 100 100)"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor" transform="rotate(120 100 100)"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor" transform="rotate(180 100 100)"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor" transform="rotate(240 100 100)"/>
+      <circle cx="100" cy="11" r="4" fill="currentColor" transform="rotate(300 100 100)"/>
+      <text x="230" y="115" font-family="Syne,sans-serif" font-size="72" font-weight="800" letter-spacing="-1" fill="currentColor">SEG HOLDCO, LLC.</text>
+      <line x1="230" y1="145" x2="316" y2="145" stroke="currentColor" stroke-width="2"/>
+      <text x="326" y="152" font-family="Syne,sans-serif" font-size="22" font-weight="600" letter-spacing="8" fill="currentColor">FIJI BRANCH</text>
+      <line x1="566" y1="145" x2="810" y2="145" stroke="currentColor" stroke-width="2"/>
+    </svg>
+    <div class="header-divider"></div>
+    <div class="header-left">
+      <div class="header-title">Attendance Sheet Generator</div>
+      <div class="header-sub">Security Department · Mana Island Resort</div>
+    </div>
+  </div>
+  <div class="status-pill">
+    <span class="status-dot"></span>
+    <span id="statusText">Loading roster…</span>
+  </div>
+</header>
+
+<div class="controls-bar">
+  <div class="ctrl-group">
+    <span class="ctrl-label">Date</span>
+    <input type="date" id="dateInput" />
+  </div>
+  <div id="shiftInfo" style="display:flex;gap:12px;align-items:flex-end;padding-bottom:2px;"></div>
+  <button class="btn-print" onclick="window.print()">
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="3" y="1" width="10" height="7" rx="1" stroke="currentColor" stroke-width="1.3"/>
+      <rect x="1" y="5.5" width="14" height="7" rx="1" stroke="currentColor" stroke-width="1.3"/>
+      <rect x="4" y="10" width="8" height="4" rx="0.5" fill="currentColor" opacity="0.4"/>
+      <circle cx="12.5" cy="8.5" r="0.9" fill="currentColor"/>
+    </svg>
+    Print sheets
+  </button>
+</div>
+
+<div class="info-bar" id="infoBar" style="display:none;">
+  <span>Date: <strong id="infoDate">—</strong></span>
+  <span>AM shift: <strong id="infoAM">—</strong> guards</span>
+  <span>PM shift: <strong id="infoPM">—</strong> guards</span>
+</div>
+
+<div id="errorBanner" class="error-banner" style="display:none;"></div>
+<div class="preview-area" id="previewArea"></div>
+
+<script>
+const SHEET_CSV_URL = 'YOUR_GOOGLE_SHEET_CSV_URL_HERE';
+
+const AM_SHIFTS = ['D'];
+const PM_SHIFTS = ['N','HD'];
+const IGNORE = ['OFF','OFF2',''];
+
+const DAYS_EN = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+let rosterData = {}, minDate = null, maxDate = null;
+
+function parseCSV(text) {
+  return text.split('\n').map(l=>l.trim()).filter(l=>l).map(line=>{
+    const r=[]; let cur='',inQ=false;
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"'){inQ=!inQ;}
+      else if(line[i]===','&&!inQ){r.push(cur.trim());cur='';}
+      else{cur+=line[i];}
+    }
+    r.push(cur.trim()); return r;
+  });
+}
+
+function isExcelDate(v){const n=parseFloat(v);return !isNaN(n)&&n>40000&&n<60000;}
+function isISODate(v){return /^\d{4}-\d{2}-\d{2}/.test(v||'');}
+function toDateStr(d){return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;}
+function excelToDate(s){return toDateStr(new Date(new Date(Date.UTC(1899,11,30)).getTime()+s*86400000));}
+function parseSheetDate(v){
+  if(!v)return null; v=v.trim();
+  if(isISODate(v))return v.slice(0,10);
+  if(isExcelDate(v))return excelToDate(parseFloat(v));
+  const d=new Date(v); return isNaN(d)?null:toDateStr(d);
+}
+function formatDate(s){
+  const [y,m,d]=s.split('-').map(Number);
+  const dt=new Date(y,m-1,d);
+  return `${DAYS_EN[dt.getDay()]}, ${d} ${MONTHS_EN[m-1]} ${y}`;
+}
+
+function buildRoster(rows){
+  const data={};
+  let drIdx=-1;
+  for(let r=0;r<Math.min(10,rows.length);r++){
+    let cnt=0;
+    for(let c=2;c<rows[r].length;c++){if(isExcelDate(rows[r][c])||isISODate(rows[r][c]))cnt++;}
+    if(cnt>3){drIdx=r;break;}
+  }
+  if(drIdx===-1)throw new Error('Could not find date row.');
+  const c2d={};
+  for(let c=2;c<rows[drIdx].length;c++){const d=parseSheetDate(rows[drIdx][c]);if(d)c2d[c]=d;}
+  const dates=Object.values(c2d).sort();
+  if(dates.length){minDate=dates[0];maxDate=dates[dates.length-1];}
+  for(let r=drIdx+1;r<rows.length;r++){
+    const row=rows[r];
+    if(!row[1]||!row[1].trim())continue;
+    const name=row[1].trim().toUpperCase();
+    if(name==='FULL NAME')continue;
+    for(const[cs,ds]of Object.entries(c2d)){
+      const val=(row[parseInt(cs)]||'').trim().toUpperCase();
+      if(!val||IGNORE.includes(val))continue;
+      if(!data[ds])data[ds]={D:[],N:[]};
+      if(AM_SHIFTS.includes(val))data[ds].D.push(name);
+      else if(PM_SHIFTS.includes(val))data[ds].N.push(name);
+    }
+  }
+  return data;
+}
+
+const LOGO_BLACK = `<svg viewBox="0 0 820 200" xmlns="http://www.w3.org/2000/svg" style="height:36px;width:auto;">
+  <circle cx="100" cy="100" r="95" fill="none" stroke="#0d1b2a" stroke-width="7"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(60 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(120 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(180 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(240 100 100)"/>
+  <ellipse cx="100" cy="50" rx="16" ry="36" fill="#0d1b2a" transform="rotate(300 100 100)"/>
+  <circle cx="100" cy="100" r="10" fill="#0d1b2a"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(60 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(120 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(180 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(240 100 100)"/>
+  <circle cx="100" cy="11" r="4" fill="#0d1b2a" transform="rotate(300 100 100)"/>
+  <text x="230" y="115" font-family="Syne,sans-serif" font-size="72" font-weight="800" letter-spacing="-1" fill="#0d1b2a">SEG HOLDCO, LLC.</text>
+  <line x1="230" y1="145" x2="316" y2="145" stroke="#0d1b2a" stroke-width="2"/>
+  <text x="326" y="152" font-family="Syne,sans-serif" font-size="22" font-weight="600" letter-spacing="8" fill="#0d1b2a">FIJI BRANCH</text>
+  <line x1="566" y1="145" x2="810" y2="145" stroke="#0d1b2a" stroke-width="2"/>
+</svg>`;
+
+function buildSheet(dateStr, shift, guards){
+  const isAM=shift==='AM';
+  const badge=isAM?'sp-badge-am':'sp-badge-pm';
+  const label=isAM?'&#9728; AM Shift — Day':'&#9790; PM Shift — Night';
+  const dateDisplay=formatDate(dateStr);
+  let rows='';
+  guards.forEach((name,i)=>{
+    const parts=name.trim().split(' ');
+    const last=parts.slice(-1)[0];
+    const first=parts.slice(0,-1).join(' ');
+    rows+=`<tr>
+      <td class="num">${i+1}</td>
+      <td class="name">${first}</td>
+      <td class="name">${last}</td>
+      <td></td>
+      <td class="sp-sig"></td>
+      <td class="sp-check tc"></td>
+      <td class="sp-check tc"></td>
+      <td class="sp-sig"></td>
+      <td style="min-width:80px;"></td>
+    </tr>`;
+  });
+  return `<div class="sheet-preview">
+    <div class="sp-header">
+      <div class="sp-header-top">
+        ${LOGO_BLACK}
+        <div class="sp-header-right">
+          <div class="sp-company">Project / Seasons 51–52</div>
+          <div class="sp-dept">Security Department — Security Guards @ Mana Island</div>
+        </div>
+      </div>
+      <div class="sp-title-row">
+        <div class="sp-title">Attendance Sheet</div>
+        <span class="${badge}">${label}</span>
+      </div>
+      <div class="sp-meta">
+        <span>Date: <strong>${dateDisplay}</strong></span>
+        <span>Guards on duty: <strong>${guards.length}</strong></span>
+      </div>
+    </div>
+    <table class="sp-table">
+      <thead><tr>
+        <th>N°</th>
+        <th style="min-width:130px;">First name</th>
+        <th style="min-width:130px;">Last name</th>
+        <th style="width:70px;">Post</th>
+        <th style="min-width:110px;">Signature</th>
+        <th style="width:44px;">Radio</th>
+        <th style="width:44px;">Torch</th>
+        <th style="min-width:110px;">Signature</th>
+        <th style="min-width:90px;">Notes</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function renderSheets(dateStr){
+  const preview=document.getElementById('previewArea');
+  const infoBar=document.getElementById('infoBar');
+  const shiftInfo=document.getElementById('shiftInfo');
+  if(!dateStr){preview.innerHTML='';infoBar.style.display='none';return;}
+  const data=rosterData[dateStr];
+  if(!data){
+    preview.innerHTML=`<div class="no-data"><div class="no-data-icon">📋</div><div>No roster data for <strong>${formatDate(dateStr)}</strong></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Check that the date falls within the roster period.</div></div>`;
+    infoBar.style.display='none';shiftInfo.innerHTML='';return;
+  }
+  const amG=data.D||[], pmG=data.N||[];
+  infoBar.style.display='flex';
+  document.getElementById('infoDate').textContent=formatDate(dateStr);
+  document.getElementById('infoAM').textContent=amG.length;
+  document.getElementById('infoPM').textContent=pmG.length;
+  shiftInfo.innerHTML='';
+  if(amG.length)shiftInfo.innerHTML+=`<span class="shift-tag tag-am">AM · ${amG.length}</span>`;
+  if(pmG.length)shiftInfo.innerHTML+=`<span class="shift-tag tag-pm">PM · ${pmG.length}</span>`;
+  let html='';
+  if(amG.length)html+=buildSheet(dateStr,'AM',amG);
+  if(pmG.length)html+=buildSheet(dateStr,'PM',pmG);
+  if(!html)html=`<div class="no-data"><div class="no-data-icon">📋</div><div>No guards assigned for this date.</div></div>`;
+  preview.innerHTML=html;
+}
+
+async function loadRoster(){
+  document.getElementById('statusText').textContent='Loading roster…';
+  document.getElementById('previewArea').innerHTML=`<div class="loading"><div class="spinner"></div><span>Fetching roster data…</span></div>`;
+  document.getElementById('infoBar').style.display='none';
+  try{
+    const res=await fetch(SHEET_CSV_URL);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    rosterData=buildRoster(parseCSV(await res.text()));
+    document.getElementById('statusText').textContent=`Roster loaded · ${Object.keys(rosterData).length} days`;
+    document.getElementById('errorBanner').style.display='none';
+    if(minDate)document.getElementById('dateInput').min=minDate;
+    if(maxDate)document.getElementById('dateInput').max=maxDate;
+    const today=toDateStr(new Date());
+    const def=rosterData[today]?today:(minDate||today);
+    document.getElementById('dateInput').value=def;
+    renderSheets(def);
+  }catch(err){
+    document.getElementById('statusText').textContent='Error loading roster';
+    const eb=document.getElementById('errorBanner');
+    eb.innerHTML=`Could not load roster data. Verify the Google Sheet URL is published as CSV.<br><br><code>${err.message}</code>`;
+    eb.style.display='block';
+    document.getElementById('previewArea').innerHTML='';
+  }
+}
+
+document.getElementById('dateInput').addEventListener('change',function(){renderSheets(this.value);});
+loadRoster();
+</script>
+</body>
+</html>
